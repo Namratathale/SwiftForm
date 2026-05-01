@@ -2,10 +2,25 @@ import jwt from 'jsonwebtoken'
 import {User} from '../models/User.js'
 
 export const requireAuth = async (req, res, next) => {
-  // if no Authorization header or doesn't start with 'Bearer ' → 401
-  // extract token from header
-  // verify JWT with secret from env
-  // find user by decoded.userId (exclude password) → 401 if not found
-  // set req.user = user, call next()
-  // on JWT error → 401 invalid or expired token
+  const header = req.headers.authorization
+
+  if (!header?.startsWith('Bearer ')) {
+    return res.status(401).json({message: 'Authentication required'})
+  }
+
+  const token = header.split(' ')[1]
+
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'dev-secret-change-me')
+    const user = await User.findById(decoded.userId).select('-password')
+
+    if (!user) {
+      return res.status(401).json({message: 'User not found'})
+    }
+
+    req.user = user
+    return next()
+  } catch (_error) {
+    return res.status(401).json({message: 'Invalid or expired token'})
+  }
 }
