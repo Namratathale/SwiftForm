@@ -1,7 +1,7 @@
 import {createContext, useContext, useEffect, useState} from 'react'
 
 const ThemeContext = createContext(null)
-const THEME_KEY = 'formforge-theme'
+const THEME_KEY = "formforge-theme"
 
 export function ThemeProvider({children}) {
   const [theme, setTheme] = useState(() => localStorage.getItem(THEME_KEY) || 'light')
