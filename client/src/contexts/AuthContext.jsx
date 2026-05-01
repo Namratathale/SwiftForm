@@ -5,19 +5,62 @@ const AuthContext = createContext(null)
 const TOKEN_KEY = 'formforge-token'
 
 export function AuthProvider({children}) {
-  // state: token (from localStorage), user, loading
+  const [token, setToken] = useState(() => localStorage.getItem(TOKEN_KEY) || '')
+  const [user, setUser] = useState(null)
+  const [loading, setLoading] = useState(true)
 
-  // useEffect on [token]:
-  //   bootstrap() → if no token, set loading false and return
-  //                 else call api.me(token) → setUser on success
-  //                 on error → remove token from localStorage, clear token + user
-  //                 finally → setLoading(false)
-  //   cleanup → set active = false to prevent stale state updates
+  useEffect(() => {
+    let active = true
 
-  // storeSession(payload) → saves token to localStorage, sets token + user
-  // signup(payload)       → calls api.signup, then storeSession, returns data
-  // login(payload)        → calls api.login, then storeSession, returns data
-  // logout()              → removes token from localStorage, clears token + user
+    const bootstrap = async () => {
+      if (!token) {
+        if (active) setLoading(false)
+        return
+      }
+
+      try {
+        const data = await api.me(token)
+        if (active) setUser(data.user)
+      } catch (_error) {
+        localStorage.removeItem(TOKEN_KEY)
+        if (active) {
+          setToken('')
+          setUser(null)
+        }
+      } finally {
+        if (active) setLoading(false)
+      }
+    }
+
+    bootstrap()
+    return () => {
+      active = false
+    }
+  }, [token])
+
+  const storeSession = (payload) => {
+    localStorage.setItem(TOKEN_KEY, payload.token)
+    setToken(payload.token)
+    setUser(payload.user)
+  }
+
+  const signup = async (payload) => {
+    const data = await api.signup(payload)
+    storeSession(data)
+    return data
+  }
+
+  const login = async (payload) => {
+    const data = await api.login(payload)
+    storeSession(data)
+    return data
+  }
+
+  const logout = () => {
+    localStorage.removeItem(TOKEN_KEY)
+    setToken('')
+    setUser(null)
+  }
 
   return <AuthContext.Provider value={{token, user, loading, signup, login, logout}}>{children}</AuthContext.Provider>
 }

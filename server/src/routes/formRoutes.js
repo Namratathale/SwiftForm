@@ -12,12 +12,12 @@ import {requireAuth} from '../middleware/authMiddleware.js'
 
 const router = Router()
 
-// GET  /forms                        → requireAuth, listForms
-// POST /forms/generate               → requireAuth, createFormFromPrompt
-// GET  /forms/:id                    → requireAuth, getFormById
-// PUT  /forms/:id                    → requireAuth, updateForm
-// GET  /forms/:id/dashboard          → requireAuth, getDashboard
-// GET  /public/forms/:slug           → getPublicForm
-// POST /public/forms/:slug/responses → submitResponse
+router.get('/forms', requireAuth, listForms)
+router.post('/forms/generate', requireAuth, createFormFromPrompt)
+router.get('/forms/:id', requireAuth, getFormById)
+router.put('/forms/:id', requireAuth, updateForm)
+router.get('/forms/:id/dashboard', requireAuth, getDashboard)
+router.get('/public/forms/:slug', getPublicForm)
+router.post('/public/forms/:slug/responses', submitResponse)
 
 export default router

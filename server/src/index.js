@@ -8,27 +8,73 @@ import formRoutes from './routes/formRoutes.js'
 dotenv.config()
 
 const app = express()
-// port (default: 5000), host (default: '127.0.0.1'), configuredClientUrl (default: 'http://localhost:5173')
-// allowedOrigins Set → configuredClientUrl + localhost:5173 + 127.0.0.1:5173
+const port = process.env.PORT || 5000
+const host = process.env.HOST || '127.0.0.1'
+const configuredClientUrl = process.env.CLIENT_URL || 'http://localhost:5173'
 
-// cors middleware → allow if no origin or origin in allowedOrigins, else block
-// express.json middleware
+const allowedOrigins = new Set([configuredClientUrl, 'http://localhost:5173', 'http://127.0.0.1:5173'])
 
-// GET /api/health → { status: 'ok', database: 'connected' | 'disconnected' }
+app.use(
+  cors({
+    origin(origin, callback) {
+      if (!origin || allowedOrigins.has(origin)) {
+        return callback(null, true)
+      }
 
-// /api/auth → authRoutes
+      return callback(new Error(`CORS blocked for origin: ${origin}`))
+    }
+  })
+)
+app.use(express.json())
 
-// /api middleware (DB guard):
-//   skip if path === '/health' or starts with '/auth/'
-//   if !isDbReady → 503 with config hint message
-//   else → next()
+app.get('/api/health', (_req, res) => {
+  res.json({
+    status: 'ok',
+    database: isDbReady() ? 'connected' : 'disconnected'
+  })
+})
 
-// /api → formRoutes
+app.use('/api/auth', authRoutes)
 
-// app.listen on host:port → log server URL
-// server 'error' handler:
-//   EADDRINUSE → port in use message
-//   EPERM      → permission denied message
-//   default    → generic error message
+app.use('/api', (req, res, next) => {
+  if (req.path === '/health') {
+    return next()
+  }
 
-// connectDb() → on failure log error + 503 warning message
+  if (req.path.startsWith('/auth/')) {
+    return next()
+  }
+
+  if (!isDbReady()) {
+    return res.status(503).json({
+      message: 'Database is not connected. Check server/.env and MongoDB Atlas network access settings.'
+    })
+  }
+
+  return next()
+})
+
+app.use('/api', formRoutes)
+
+const server = app.listen(port, host, () => {
+  console.log(`Server running at http://${host}:${port}`)
+})
+
+server.on('error', (error) => {
+  if (error.code === 'EADDRINUSE') {
+    console.error(`Server startup failed: port ${port} is already in use.`)
+    return
+  }
+
+  if (error.code === 'EPERM') {
+    console.error(`Server startup failed: permission denied while binding to ${host}:${port}.`)
+    return
+  }
+
+  console.error('Server startup failed:', error.message)
+})
+
+connectDb().catch((error) => {
+  console.error('Database connection failed:', error.message)
+  console.error('The API will stay up, but form routes will return 503 until MongoDB connects successfully.')
+})

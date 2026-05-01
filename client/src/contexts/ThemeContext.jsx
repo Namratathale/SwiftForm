@@ -4,13 +4,16 @@ const ThemeContext = createContext(null)
 const THEME_KEY = 'formforge-theme'
 
 export function ThemeProvider({children}) {
-  // state: theme (from localStorage, defaults to 'light')
+  const [theme, setTheme] = useState(() => localStorage.getItem(THEME_KEY) || 'light')
 
-  // useEffect on [theme]:
-  //   → sets document.documentElement.dataset.theme to current theme
-  //   → saves theme to localStorage
+  useEffect(() => {
+    document.documentElement.dataset.theme = theme
+    localStorage.setItem(THEME_KEY, theme)
+  }, [theme])
 
-  // toggleTheme() → toggles theme between 'light' and 'dark'
+  const toggleTheme = () => {
+    setTheme((current) => (current === 'light' ? 'dark' : 'light'))
+  }
 
   return <ThemeContext.Provider value={{theme, toggleTheme}}>{children}</ThemeContext.Provider>
 }

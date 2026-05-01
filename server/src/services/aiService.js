@@ -8,7 +8,7 @@ const debug = (...args) => {
 
 const stripCodeFences = (content) => {
   const text = String(content || '')
-  const fenced = text.match(/```(?:json)?\s*([\s\S]*?)```/i)
+  const fenced = text.match(/```(?:json)?\s*([\s\S]*?)```/i)  //remove code fences if present, to allow parsing of raw JSON or JSON wrapped in ``` or ```json fences (common LLM output formats)
   return (fenced ? fenced[1] : text).trim()
 }
 
@@ -17,7 +17,7 @@ const extractJson = (content) => {
 
   // First try: parse as-is (some models return strict JSON with no extra text).
   try {
-    return JSON.parse(cleaned)
+    return JSON.parse(cleaned)  //reading the json content as is, in case the model returned clean JSON with no extra text (some models do this, especially if explicitly prompted to return JSON only)
   } catch (_error) {
     // continue
   }
@@ -39,6 +39,7 @@ const extractJson = (content) => {
   throw new Error('No JSON payload returned by model')
 }
 
+// remove || lowercase and trim to create a slug base (e.g. "New York City" → "new-york-city")
 const slugify = (value) =>
   String(value || '')
     .toLowerCase()
