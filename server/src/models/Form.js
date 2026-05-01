@@ -1,6 +1,5 @@
 import mongoose from 'mongoose'
 
-// optionSchema  (_id: false) → label (String, required), value (String, required)
 const optionSchema = new mongoose.Schema(
   {
     label: {type: String, required: true},
@@ -9,11 +8,6 @@ const optionSchema = new mongoose.Schema(
   {_id: false}
 )
 
-// questionSchema (_id: false) → id, title (required), description (default: ''),
-//   type (enum: short_text | long_text | email | number | select | radio | checkbox | date, required),
-//   required (Boolean, default: false), placeholder (default: ''),
-//   options ([optionSchema], default: []),
-//   validation: { minLength, maxLength, min, max, pattern }
 const questionSchema = new mongoose.Schema(
   {
     id: {type: String, required: true},
@@ -38,13 +32,6 @@ const questionSchema = new mongoose.Schema(
   {_id: false}
 )
 
-// formSchema (timestamps: true) →
-//   owner (ObjectId, ref: 'User', required),
-//   title (required), description (default: ''),
-//   prompt (required), slug (required, unique),
-//   status (enum: draft | published, default: 'draft'),
-//   theme: { accent (default: '#ff6b35'), surface (default: '#fff8ef') },
-//   questions ([questionSchema], default: [])
 const formSchema = new mongoose.Schema(
   {
     owner: {type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true},

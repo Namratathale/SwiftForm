@@ -1,6 +1,5 @@
 import mongoose from 'mongoose'
 
-// answerSchema (_id: false) → questionId (String, required), value (Mixed, required)
 const answerSchema = new mongoose.Schema(
   {
     questionId: {type: String, required: true},
@@ -9,10 +8,6 @@ const answerSchema = new mongoose.Schema(
   {_id: false}
 )
 
-// responseSchema (timestamps: true) →
-//   form (ObjectId, ref: 'Form', required),
-//   answers ([answerSchema], default: []),
-//   submittedAt (Date, default: Date.now)
 const responseSchema = new mongoose.Schema(
   {
     form: {type: mongoose.Schema.Types.ObjectId, ref: 'Form', required: true},
