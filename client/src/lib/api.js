@@ -1,28 +1,99 @@
-// resolveApiBase() → returns API base URL:
-//   if no VITE_API_BASE_URL → falls back to window.location protocol+hostname on port 5000/api
-//   if configured URL is local + current host is local → swaps hostname to window.location.hostname
-//   otherwise → returns configured URL as-is
-//   on URL parse error → returns configured value unchanged
+const resolveApiBase = () => {
+  const configuredBase = import.meta.env.VITE_API_BASE_URL
+
+  if (!configuredBase) {
+    return `${window.location.protocol}//${window.location.hostname}:5000/api`
+  }
+
+  try {
+    const url = new URL(configuredBase)
+    const isLocalAddress = ['localhost', '127.0.0.1'].includes(url.hostname)
+    const currentIsLocal = ['localhost', '127.0.0.1'].includes(window.location.hostname)
+
+    if (isLocalAddress && currentIsLocal) {
+      url.hostname = window.location.hostname
+      return url.toString().replace(/\/$/, '')
+    }
+
+    return configuredBase
+  } catch (_error) {
+    return configuredBase
+  }
+}
 
 const API_BASE = resolveApiBase()
 const DEBUG_AI = import.meta.env.VITE_DEBUG_AI === 'true'
 
-// request(path, options) → base fetch wrapper:
-//   if DEBUG_AI + path is /forms/generate → logs request payload
-//   sets Content-Type + optional Bearer token header
-//   parses JSON response (falls back to {})
-//   throws Error with message if response not ok
-//   if DEBUG_AI + path is /forms/generate → logs response meta + question summaries
-//   returns parsed data
+const request = async (path, options = {}) => {
+  if (DEBUG_AI && path === '/forms/generate') {
+    console.log('[api] POST /forms/generate payload:', options.body)
+  }
+
+  const response = await fetch(`${API_BASE}${path}`, {
+    headers: {
+      'Content-Type': 'application/json',
+      ...(options.token ? {Authorization: `Bearer ${options.token}`} : {}),
+      ...(options.headers || {})
+    },
+    ...options
+  })
+
+  const data = await response.json().catch(() => ({}))
+
+  if (!response.ok) {
+    throw new Error(data.message || 'Request failed')
+  }
+
+  if (DEBUG_AI && path === '/forms/generate') {
+    console.log('[api] /forms/generate response meta:', data?.meta)
+    console.log(
+      '[api] /forms/generate questions:',
+      (data?.form?.questions || []).map((q) => ({id: q.id, title: q.title, type: q.type}))
+    )
+  }
+
+  return data
+}
 
 export const api = {
-  // signup(payload)              → POST /auth/signup
-  // login(payload)               → POST /auth/login
-  // me(token)                    → GET  /auth/me
-  // listForms(token)             → GET  /forms
-  // generateForm(prompt, token)  → POST /forms/generate
-  // updateForm(id, payload, token) → PUT /forms/:id
-  // getDashboard(id, token)      → GET  /forms/:id/dashboard
-  // getPublicForm(slug)          → GET  /public/forms/:slug
-  // submitResponse(slug, answers)→ POST /public/forms/:slug/responses
+  signup: (payload) =>
+    request('/auth/signup', {
+      method: 'POST',
+      body: JSON.stringify(payload)
+    }),
+  login: (payload) =>
+    request('/auth/login', {
+      method: 'POST',
+      body: JSON.stringify(payload)
+    }),
+  me: (token) =>
+    request('/auth/me', {
+      token
+    }),
+  listForms: (token) =>
+    request('/forms', {
+      token
+    }),
+  generateForm: (prompt, token) =>
+    request('/forms/generate', {
+      method: 'POST',
+      token,
+      body: JSON.stringify({prompt})
+    }),
+  updateForm: (id, payload, token) =>
+    request(`/forms/${id}`, {
+      method: 'PUT',
+      token,
+      body: JSON.stringify(payload)
+    }),
+  getDashboard: (id, token) =>
+    request(`/forms/${id}/dashboard`, {
+      token
+    }),
+  getPublicForm: (slug) => request(`/public/forms/${slug}`),
+  submitResponse: (slug, answers) =>
+    request(`/public/forms/${slug}/responses`, {
+      method: 'POST',
+      body: JSON.stringify({answers})
+    })
 }
