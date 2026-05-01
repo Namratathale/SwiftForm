@@ -4,8 +4,8 @@ import {requireAuth} from '../middleware/authMiddleware.js'
 
 const router = Router()
 
-// POST /signup → signup
-// POST /login  → login
-// GET  /me     → requireAuth, getCurrentUser
+router.post('/signup', signup)
+router.post('/login', login)
+router.get('/me', requireAuth, getCurrentUser)
 
 export default router
