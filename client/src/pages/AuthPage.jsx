@@ -7,33 +7,96 @@ const initialForm = {name: '', email: '', password: ''}
 export default function AuthPage() {
   const {token, login, signup} = useAuth()
   const location = useLocation()
-  // state: mode ('signup' | 'login'), form, error, busy
+  const [mode, setMode] = useState('signup')
+  const [form, setForm] = useState(initialForm)
+  const [error, setError] = useState('')
+  const [busy, setBusy] = useState(false)
 
-  // if token → redirect to location.state?.from or '/workspace'
+  if (token) {
+    return <Navigate to={location.state?.from || '/workspace'} replace />
+  }
 
-  // handleSubmit(event) → prevents default, sets busy + clears error
-  //   if mode is 'signup' → calls signup(form)
-  //   if mode is 'login'  → calls login({ email, password })
-  //   on error → setError(err.message)
-  //   finally  → setBusy(false)
+  const handleSubmit = async (event) => {
+    event.preventDefault()
+    setBusy(true)
+    setError('')
+
+    try {
+      if (mode === 'signup') {
+        await signup(form)
+      } else {
+        await login({email: form.email, password: form.password})
+      }
+    } catch (err) {
+      setError(err.message)
+    } finally {
+      setBusy(false)
+    }
+  }
 
   return (
     <main className="page auth-page">
       <section className="auth-shell">
-        {/* Promo panel: eyebrow, h1, description, 3 metrics (1 prompt, 2 modes, Live preview) */}
+        <div className="auth-promo">
+          <span className="eyebrow">Account</span>
+          <h1>Build polished forms from a simple prompt.</h1>
+          <p>Sign in to generate drafts, edit questions, publish links, and review responses in one compact workspace.</p>
+          <div className="auth-metrics">
+            <div>
+              <strong>1 prompt</strong>
+              <span>to draft a schema</span>
+            </div>
+            <div>
+              <strong>2 modes</strong>
+              <span>light and dark</span>
+            </div>
+            <div>
+              <strong>Live preview</strong>
+              <span>before publishing</span>
+            </div>
+          </div>
+        </div>
 
         <form className="auth-card" onSubmit={handleSubmit}>
-          {/* Segmented control: Sign up | Login toggle */}
+          <div className="segmented-control">
+            <button className={mode === 'signup' ? 'segmented active' : 'segmented'} type="button" onClick={() => setMode('signup')}>
+              Sign up
+            </button>
+            <button className={mode === 'login' ? 'segmented active' : 'segmented'} type="button" onClick={() => setMode('login')}>
+              Login
+            </button>
+          </div>
 
-          {/* If mode is 'signup' → name input */}
+          {mode === 'signup' && (
+            <input
+              className="input"
+              placeholder="Your name"
+              value={form.name}
+              onChange={(event) => setForm({...form, name: event.target.value})}
+            />
+          )}
 
-          {/* Email input */}
+          <input
+            className="input"
+            type="email"
+            placeholder="name@company.com"
+            value={form.email}
+            onChange={(event) => setForm({...form, email: event.target.value})}
+          />
 
-          {/* Password input */}
+          <input
+            className="input"
+            type="password"
+            placeholder="At least 6 characters"
+            value={form.password}
+            onChange={(event) => setForm({...form, password: event.target.value})}
+          />
 
-          {/* If error → error message */}
+          {error && <p className="error-text">{error}</p>}
 
-          {/* Submit button: disabled when busy, label changes per mode + busy state */}
+          <button className="primary-btn wide-btn" type="submit" disabled={busy}>
+            {busy ? 'Please wait...' : mode === 'signup' ? 'Create account' : 'Sign in'}
+          </button>
         </form>
       </section>
     </main>

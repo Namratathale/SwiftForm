@@ -50,7 +50,7 @@ export default function App() {
       <header className="topbar">
         <div className="topbar-left">
           <Link className="brand" to={token ? '/workspace' : '/'}>
-            FormForge AI
+            SwiftForm AI
           </Link>
           <p className="topbar-copy">Prompt to form, with a cleaner builder and focused response flow.</p>
         </div>
@@ -94,7 +94,7 @@ export default function App() {
         <Route path="/forms/:slug" element={<PublicFormPage />} />
       </Routes>
 
-      <div className="app-watermark">PoweredBy - NxtMock</div>
+      <div className="app-watermark"></div>
     </div>
   )
 }

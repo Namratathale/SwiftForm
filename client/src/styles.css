@@ -258,7 +258,7 @@ button {
 .prompt-help {
   display: grid;
   gap: 0.4rem;
-  padding: 0.7rem 0.85rem;
+    padding: 0.7rem 0.85rem;
   border-radius: 14px;
   border: 1px dashed var(--border);
   background: color-mix(in srgb, var(--panel-strong) 84%, transparent);
@@ -363,6 +363,7 @@ details[open] .compact-summary::after {
 .showcase-card,
 .auth-card {
   background: var(--panel);
+  -webkit-backdrop-filter: blur(18px);
   backdrop-filter: blur(18px);
   border-radius: 30px;
 }
@@ -1248,6 +1249,83 @@ details[open] .compact-summary::after {
   .dashboard-hero h1 {
     font-size: clamp(2rem, 10vw, 3rem);
   }
+}
+
+:root {
+  --interactive-duration: 220ms;
+  --interactive-ease: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+* {
+  transition: background-color var(--interactive-duration) var(--interactive-ease),
+              color var(--interactive-duration) var(--interactive-ease),
+              border-color var(--interactive-duration) var(--interactive-ease),
+              transform var(--interactive-duration) var(--interactive-ease),
+              box-shadow var(--interactive-duration) var(--interactive-ease);
+}
+
+body {
+  animation: fadeInPage 0.65s ease-out both;
+}
+
+button,
+input,
+textarea,
+select,
+a.button,
+.card,
+.public-card,
+.workspace-card {
+  will-change: transform, box-shadow;
+}
+
+button:hover,
+a.button:hover,
+.card:hover,
+.public-card:hover,
+.workspace-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 18px 45px rgba(0, 0, 0, 0.12);
+}
+
+button:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+  outline: 2px solid rgba(81, 120, 255, 0.9);
+  outline-offset: 2px;
+}
+
+input,
+textarea,
+select {
+  border-radius: 0.75rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+input:focus,
+textarea:focus,
+select:focus {
+  border-color: rgba(81, 120, 255, 0.8);
+  box-shadow: 0 0 0 0.15rem rgba(81, 120, 255, 0.14);
+}
+
+.card,
+.public-card,
+.workspace-card,
+.glass-panel,
+.topbar,
+.panel-header,
+.gallery-item {
+  transition: transform var(--interactive-duration) var(--interactive-ease),
+              box-shadow var(--interactive-duration) var(--interactive-ease),
+              backdrop-filter var(--interactive-duration) var(--interactive-ease);
+}
+
+@keyframes fadeInPage {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 .workspace-top.glass-panel {
