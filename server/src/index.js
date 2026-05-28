@@ -79,6 +79,6 @@ connectDb().catch((error) => {
   console.error('The API will stay up, but form routes will return 503 until MongoDB connects successfully.')
 })
 
-app.listen(PORT, '0.0.0.0', () => {
+app.listen(port, '0.0.0.0', () => {
     console.log(`SwiftForm backend operating smoothly on port ${PORT}`);
 });
