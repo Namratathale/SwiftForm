@@ -15,17 +15,28 @@ const configuredClientUrl = process.env.CLIENT_URL || 'http://localhost:5173'
 
 const allowedOrigins = new Set([configuredClientUrl, 'http://localhost:5173', 'http://127.0.0.1:5173'])
 
+// Allow exact matches, plus any dynamic preview/deployment URLs from your Vercel project
 app.use(
   cors({
     origin(origin, callback) {
-      if (!origin || allowedOrigins.has(origin)) {
-        return callback(null, true)
+      // 1. Allow local development or mobile requests (where origin is undefined)
+      if (!origin) return callback(null, true);
+
+      // 2. Check if the origin matches your local setup or your main Vercel project domain
+      const isAllowedLocal = origin === 'http://localhost:5173' || origin === 'http://127.0.0.1:5173';
+      const isAllowedVercel = origin.includes('swift-forms-auto-forms-making') && origin.includes('.vercel.app');
+
+      if (isAllowedLocal || isAllowedVercel) {
+        return callback(null, true);
       }
 
-      return callback(new Error(`CORS blocked for origin: ${origin}`))
-    }
+      // 3. Block anything else
+      return callback(new Error(`CORS blocked for origin: ${origin}`));
+    },
+    credentials: true // Crucial if you plan to handle cookies/sessions later
   })
-)
+);
+
 app.use(express.json())
 app.get('/api/health', (_req, res) => {
   res.json({
