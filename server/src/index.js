@@ -27,9 +27,6 @@ app.use(
   })
 )
 app.use(express.json())
-app.listen(PORT, '0.0.0.0', () => {
-    console.log(`SwiftForm backend operating smoothly on port ${PORT}`);
-});
 app.get('/api/health', (_req, res) => {
   res.json({
     status: 'ok',
