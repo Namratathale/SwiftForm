@@ -8,7 +8,10 @@ import formRoutes from './routes/formRoutes.js'
 dotenv.config()
 
 const app = express()
-const port = process.env.PORT || 5000
+const port = process.env.PORT || 5000;
+app.listen(PORT, '0.0.0.0', () => {
+    console.log(`SwiftForm backend operating smoothly on port ${PORT}`);
+});
 const host = process.env.HOST || '127.0.0.1'
 const configuredClientUrl = process.env.CLIENT_URL || 'http://localhost:5173'
 
