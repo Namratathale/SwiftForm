@@ -56,29 +56,30 @@ app.use('/api', (req, res, next) => {
 
 app.use('/api', formRoutes)
 
-const server = app.listen(port, host, () => {
-  console.log(`Server running at http://${host}:${port}`)
-})
+// Change 'host' behavior for Render production environment
+// Render automatically provides process.env.PORT, but NOT process.env.HOST.
+// If process.env.PORT exists (Render), we must use '0.0.0.0'. Otherwise, default to '127.0.0.1'.
+const finalHost = process.env.PORT ? '0.0.0.0' : host;
+
+const server = app.listen(port, finalHost, () => {
+  console.log(`SwiftForm backend operating smoothly on ${finalHost}:${port}`);
+});
 
 server.on('error', (error) => {
   if (error.code === 'EADDRINUSE') {
-    console.error(`Server startup failed: port ${port} is already in use.`)
-    return
+    console.error(`Server startup failed: port ${port} is already in use.`);
+    return;
   }
 
   if (error.code === 'EPERM') {
-    console.error(`Server startup failed: permission denied while binding to ${host}:${port}.`)
-    return
+    console.error(`Server startup failed: permission denied while binding to ${finalHost}:${port}.`);
+    return;
   }
 
-  console.error('Server startup failed:', error.message)
-})
+  console.error('Server startup failed:', error.message);
+});
 
 connectDb().catch((error) => {
-  console.error('Database connection failed:', error.message)
-  console.error('The API will stay up, but form routes will return 503 until MongoDB connects successfully.')
-})
-
-app.listen(port, '0.0.0.0', () => {
-    console.log(`SwiftForm backend operating smoothly on port ${PORT}`);
+  console.error('Database connection failed:', error.message);
+  console.error('The API will stay up, but form routes will return 503 until MongoDB connects successfully.');
 });
